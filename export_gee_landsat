@@ -1,0 +1,33 @@
+
+/////----------input region of interest----------
+//SHP with id value
+var xROI = ee.FeatureCollection('projects/ee-canola-yield/assets/EC_zones')
+print(xROI,'xROI')
+// var filter = xROI.filterMetadata('Id', 'equals', 0)
+// print(filter)
+// Map.addLayer(filter)
+
+
+// //// ---------call a module to get image -------------------------------------
+var Landsat78 = require('users/Ha/module:SoilEC2022/Landsat78_tcwnbr')
+
+
+//---------- apply module: moduleCall.moduleXxportedName (function_parameter) -----
+var inImg = Landsat78.Landsat78_tcwnbr(xROI)  
+var inImg = inImg.clip(xROI)
+
+
+///// -------bulk export image-------------
+// input inImg (image not collection), xROI (feature collection)
+for(var a = 0; a < 13; a++){
+  var filter = xROI.filterMetadata('Id', 'equals', a+1)//.geometry()
+  var expImg = inImg.clip(filter).float()
+  Export.image.toDrive({
+    image: expImg,//ee.Image(listOfImages.get(a)).clip(fil),
+    description: 'Image'+'_'+a,
+    folder: 'SoilEC2022/Landsat78twcnbr',
+    maxPixels: 1e13, 
+    scale: 10
+  })
+}
+////-----------------------------------//
